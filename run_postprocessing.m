@@ -2,12 +2,12 @@ function [opts, cc] = run_postprocessing( path_seg, varargin )
 
 % Parse the optional arguments
 defaults = struct('runmerge', 1, 'runinterp', 1, 'skip', 0, 'percent', ...
-    0, 'filtsize2D', 1);
+    0, 'filtsize2D', 1, 'se', ones(3,3));
 opts = parse_varargin(defaults, varargin);
 
 % Check if the input path exists
 if ~isequal(exist(path_seg), 7)
-    error(sprintf('The input path %s does not exist', path_seg));
+    error('The input path %s does not exist', path_seg);
 end
 
 % Find TIF or PNG files in the input path, path_seg
@@ -17,8 +17,7 @@ nimgs = numel(files_seg);
 
 % Check that the input path contains image files
 if ~nimgs
-    error(sprintf('The input path %s does not contain any image files', ...
-        path_seg));
+    error('The input path %s does not contain any image files', path_seg);
 end
 
 % Read the first file to get its size. Store some pertinent values to the
@@ -49,7 +48,7 @@ for ii = 1:nimgs
     end
 end
 
-% Compute the 3D connected components in stack
+% Compute the 3D connected components in the stack
 tic;
 fprintf('Computing 3D connected components. ')
 cc = bwconncomp(opts.stack);
@@ -63,6 +62,21 @@ if opts.runmerge
     cc = merge_cc_across_gaps(cc, opts); 
 end
 
+if opts.runinterp
+  for ii = 1: cc.NumObjects
+      [zunique, idx_missing] = get_unique_z_from_idx(opts.stackdims, ...
+          cc.PixelIdxList{ii}, 1);
+      while idx_missing
+          zframe1 = zunique(idx_missing(1));
+          zframe2 = zunique(idx_missing(1)+1);
+          [img1, img2] = get_interp_keyframes(opts.stackdims, ...
+              cc.PixelIdxList{ii}, zframe1, zframe2);
+          interp = albuRun(img1, img2, zframe2 - zframe1 - 1);
+          idx_missing(1) = [];
+      end
+  end
+      
+end
 
 
 
