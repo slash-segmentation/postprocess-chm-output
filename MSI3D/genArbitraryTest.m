@@ -1,5 +1,5 @@
-function [I1,I2] = genArbitraryPhantoms( Im_string,scale1,scale2,t1,t2,ang1,ang2 );
-% genArbitraryPhantoms
+function [I1,I2] = genArbitraryTest( Im_string,scale1,scale2,t1,t2,ang1,ang2 );
+% genArbitraryTest
 %    Takes a binary image as input, then creates two phantoms of this image
 %    that are scaled, translated, and rotated by the specified parameters.
 %     
@@ -26,6 +26,7 @@ function [I1,I2] = genArbitraryPhantoms( Im_string,scale1,scale2,t1,t2,ang1,ang2
 %    --------------------
 %    Requires Jan Motl's rotateAround.m from the Mathworks File Exchange:
 %    http://www.mathworks.com/matlabcentral/fileexchange/40469-rotate-an-image-about-a-point
+%
 
 if nargin < 7; ang2 = 0; end
 if nargin < 6; ang1 = 0; end

@@ -1,5 +1,4 @@
-function [ I1, I2 ] = genSquarePhantoms(S1,S2,t1,t2,ang1,ang2)
-% genSquarePhantoms
+function [ I1, I2 ] = genSquareTest(S1,S2,t1,t2,ang1,ang2)
 %    Generates a pair of binary images that are square phantoms of 
 %    specified size, XY rotation, and translation from the image center.
 %     
@@ -17,12 +16,13 @@ function [ I1, I2 ] = genSquarePhantoms(S1,S2,t1,t2,ang1,ang2)
 %
 %    Example
 %    --------------------
-%    [I1, I2] = genSquarePhantoms(80,40,[20 10],[0 0],0,30)
+%    [I1, I2] = genSquareTest(80,40,[20 10],[0 0],0,30)
 %
 %    Dependencies
 %    --------------------
 %    Requires Jan Motl's rotateAround.m from the Mathworks File Exchange:
 %    http://www.mathworks.com/matlabcentral/fileexchange/40469-rotate-an-image-about-a-point
+%
 
 if nargin < 6; ang2 = 0; end
 if nargin < 5; ang1 = 0; end

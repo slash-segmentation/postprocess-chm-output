@@ -1,5 +1,4 @@
-function [ I1, I2 ] = genCirclePhantoms(R1,R2,t1,t2)
-% genCirclePhantoms
+function [ I1, I2 ] = genCircleTest(R1,R2,t1,t2)
 %  Generates a pair of binary images that are circularphantoms of specified 
 %  radius and translation from the image center.
 %     
@@ -15,7 +14,9 @@ function [ I1, I2 ] = genCirclePhantoms(R1,R2,t1,t2)
 %
 %    Example
 %    --------------------
-%    [I1, I2] = genCirclePhantoms(80,40,[20 10],[0 0])
+%    [I1, I2] = genCircleTest(80,40,[20 10],[0 0])
+%
+
 if nargin < 4; t2 = [0 0]; end
 if nargin < 3; t1 = [0 0]; end
 if nargin < 2; error('Must specify at least two circle radii.'); end
