@@ -1,5 +1,7 @@
 function [opts, cc] = run_postprocessing( path_seg, varargin )
 
+addpath(
+
 % Parse the optional arguments
 defaults = struct('runmerge', 1, 'runinterp', 1, 'skip', 0, 'percent', ...
     0, 'filtsize2D', 1, 'se', ones(3,3));
