@@ -1,6 +1,6 @@
 function [opts, cc] = run_postprocessing( path_seg, varargin )
 
-addpath(
+addpath('CPD','interpolate','merge','MSI3D','utils');
 
 % Parse the optional arguments
 defaults = struct('runmerge', 1, 'runinterp', 1, 'skip', 0, 'percent', ...
