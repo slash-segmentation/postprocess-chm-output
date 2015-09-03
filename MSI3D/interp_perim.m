@@ -78,7 +78,7 @@ opts = parse_varargin(defaults, varargin);
 if opts.compile; compileCPD; end
 
 % Initialize output matrix
-interp = zeros([size(img1),L+2]);
+interp = zeros([size(img1) L+2]);
 interp(:,:,1) = img1;
 interp(:,:,L+2) = img2; 
 
@@ -101,26 +101,32 @@ CC2 = bwconncomp(img2);
 
 % Reduce the images to their perimeters
 tic;
+
 S1 = bwperim(img1);
 S2 = bwperim(img2);
+
+if opts.reduce
+    S1 = reduce_perim(S1, opts.reduce);
+    S2 = reduce_perim(S2, opts.reduce);
+end
+
 runtime_reduce = toc;
 
 %%%%%%%%%%
-%%% (2) Skeleton Matching
+%%% (2) Perimeter Matching
 %%%%%%%%%%
 
 tic; % Start timer for CPD
 
 % Convert from image format to a 3xM array of points, as required for CPD
-S_A_cpd = im2cpd(S1);
-S_B_cpd = im2cpd(S2);
+S1_cpd = im2cpd(S1);
+S2_cpd = im2cpd(S2);
 
 % Run Coherent Point Drift Algorithm using rigid point set registration.
-% CPD is run to generate transforms in both directions: (1) From I_A to
-% I_B, and (2) from I_B to I_A.
+% CPD is run to generate the transform from img1 to img2.
 
 fprintf('Running non-rigid CPD registration of A to B.\n');
-[Transform_AB,X_AB] = cpd_register(S_B_cpd', S_A_cpd', optscpd);
+[Transform_AB, X_AB] = cpd_register(S2_cpd', S1_cpd', optscpd);
 
 runtime_cpd = toc; % End timer for CPD
 fprintf('CPD registration done.\n')
@@ -130,26 +136,26 @@ fprintf('CPD registration done.\n')
 %%%%%%%%
 
 % Calculate the transforms in distance, in X and Y, and pixel intensity 
-% in Z to apply to the original skeleton to match the destination
-% skeleton
+% in Z
 
 tic; % Start timer for interpolation transformation 
 
-clear D_AB
-for i = 1:numel(X_AB); D_AB(:,i) = S_B_cpd(:,X_AB(i)) - S_A_cpd(:,i); end
+for i = 1:numel(X_AB); 
+    D_AB(:,i) = S2_cpd(:, X_AB(i)) - S1_cpd(:, i);
+end
 
 for l = 1:L
-
-    % Calculate coefficients for matching interpolations to the properly spaced
-    % slice. l = [1...L].
+    % Calculate coefficients for matching interpolations to the properly
+    % spaced slice. l = [1...L].
     C_AB = l / (L+1);
-    fprintf('Transforming interpolation for l = %d, C_AB = %f.\n',l,C_AB);
+    fprintf('Transforming interpolation for l = %d, C_AB = %f.\n', ...
+        l, C_AB);
 
     % Scale transforms by the coefficients
     D_AB_scale = C_AB .* D_AB;
     
     % Create new objects
-    delta_AB = S_A_cpd + D_AB_scale;
+    delta_AB = S1_cpd + D_AB_scale;
     delta_AB(1:2,:) = round(delta_AB(1:2,:));
     S_AB_delta = cpd2im(delta_AB,S1);
     
@@ -158,14 +164,8 @@ for l = 1:L
     %%%%%%%%
 
     % Reconstruct objects
-    if mode == 1
-        O_interp_AB = skel2obj(S_AB_delta,2);
-        O_interp_AB = bwmorph(O_interp_AB,'spur');
-        O_interp_AB = bwmorph(O_interp_AB,'hbreak');     
-    else
-        O_interp_AB = perimFill(S_AB_delta);
-        O_interp_AB = imfill(O_interp_AB,'holes');
-    end
+    O_interp_AB = perimFill(S_AB_delta);
+    O_interp_AB = imfill(O_interp_AB,'holes');
 
     % Check for consistency in connected components. Remove artifacts
     % if necessary.
@@ -174,7 +174,7 @@ for l = 1:L
     if CC1.NumObjects == CC2.NumObjects
         if CC_AB.NumObjects ~= CC1.NumObjects
             RP_AB = regionprops(O_interp_AB,'Area','PixelIdxList');
-            [Sort,Idx] = sort([RP_AB.Area],'descend');
+            [Sort, Idx] = sort([RP_AB.Area],'descend');
             Remove = Idx(CC1.NumObjects+1:end);
             for q = 1:numel(Remove)
                 O_interp_AB(RP_AB(Remove(q)).PixelIdxList) = 0;
@@ -193,7 +193,7 @@ for l = 1:L
     % (OPTIONAL)
     %%%%%%%%
 
-    if image == 1
+    if opts.writeimgs
         figure;
         subplot(3,2,1); imshow(S1,[]); title('P_A')
         subplot(3,2,2); imshow(S2,[]); title('P_B')
