@@ -4,7 +4,7 @@ addpath('CPD','interpolate','merge','MSI3D','utils');
 
 % Parse the optional arguments
 defaults = struct('runmerge', 1, 'runinterp', 1, 'skip', 0, 'percent', ...
-    0, 'filtsize2D', 1, 'se', ones(3,3));
+    0, 'filtsize2D', 1, 'se', ones(3,3), 'reduce', 0);
 opts = parse_varargin(defaults, varargin);
 
 % Check if the input path exists
@@ -64,21 +64,38 @@ if opts.runmerge
     cc = merge_cc_across_gaps(cc, opts); 
 end
 
+compile_switch = 0;
 if opts.runinterp
   for ii = 1: cc.NumObjects
-      [zunique, idx_missing] = get_unique_z_from_idx(opts.stackdims, ...
-          cc.PixelIdxList{ii}, 1);
+      [zunique, idx_missing] = get_unique_z_from_idx(opts.stackdims, ... 
+          cc.PixelIdxList{ii}, 1); 
       while idx_missing
           zframe1 = zunique(idx_missing(1));
           zframe2 = zunique(idx_missing(1)+1);
-          [img1, img2] = get_interp_keyframes(opts.stackdims, ...
+          fprintf('\nInterpolating object %d between Z=%d and Z=%d\n', ... 
+              ii, zframe1, zframe2);
+          [img1, img2, bb] = get_interp_keyframes(opts.stackdims, ... 
               cc.PixelIdxList{ii}, zframe1, zframe2);
-          interp = albuRun(img1, img2, zframe2 - zframe1 - 1);
-          idx_missing(1) = [];
-      end
-  end
-      
+          L = zframe2 - zframe1 - 1;
+          if ~compile_switch
+              [interp, time_interp] = interp_perim(img1, img2, L, ... 
+                  'reduce', opts.reduce);
+              compile_switch = 1;
+          else
+              [interp, time_interp] = interp_perim(img1, img2, L, ... 
+                  'reduce', opts.reduce, 'compile', 0); 
+          end
+          opts.stack(bb(1):bb(2), bb(3):bb(4), zframe1+1:zframe2-1) = ... 
+              opts.stack(bb(1):bb(2), bb(3):bb(4), zframe1+1:zframe2-1) + ... 
+              interp(:,:,2:end-1);
+          idx_missing(1) = []; 
+      end 
+  end 
 end
+
+
+
+
 
 
 
