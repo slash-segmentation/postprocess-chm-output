@@ -1,4 +1,4 @@
-function [img1, img2] = get_interp_keyframes( dims, idx, Z1, Z2 )
+function [img1, img2, bbt] = get_interp_keyframes( dims, idx, Z1, Z2 )
 
 [r, c, z] = ind2sub(dims, idx);
 
