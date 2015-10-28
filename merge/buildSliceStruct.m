@@ -1,4 +1,4 @@
-function [objects, cc] = buildSliceStruct( cc, opts )
+function [objects, cc] = buildSliceStruct( cc, opts, direction)
 % Builds a structure that has one field per slice of the image stack whose
 % 3D connected components are specified in the structure, cc. Each field
 % contains a list of the connected components, or objects, that are present
@@ -39,10 +39,14 @@ for ii = 1:cc.NumObjects
         cc.zmin = min(zunique);
         cc.zmax = max(zunique);
     end
-    
-    if cc.zmax(ii) ~= opts.stackdims(3)
+
+    if direction == 1 && cc.zmax(ii) ~= opts.stackdims(3)
         objects.check = [objects.check ii];
     end
+
+    if direction == -1 && cc.zmin(ii) ~= 1
+        objects.check = [objects.check ii];
+    end 
     
     % Loop over each slice of the current 3DCC. Store the object number to
     % the field of the slice's structure that corresponds to the given slice
