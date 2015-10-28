@@ -61,7 +61,8 @@ fprintf('Connected components memory usage: %s\n', memUsageCC);
 
 % Run steps
 if opts.runmerge
-    cc = merge_cc_across_gaps(cc, opts); 
+    cc = merge_cc_across_gaps(cc, opts, 1);
+    cc = merge_cc_across_gaps(cc, opts, -1); 
 end
 
 compile_switch = 0;
@@ -92,11 +93,5 @@ if opts.runinterp
       end 
   end 
 end
-
-
-
-
-
-
 
 end
