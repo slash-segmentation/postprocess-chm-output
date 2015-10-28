@@ -1,4 +1,4 @@
-function cc = merge_cc_across_gaps(cc, opts)
+function cc = merge_cc_across_gaps(cc, opts, direction)
 % Merges the provided connected components based on overlap across missing
 % slices in the axial dimension. The number of desired missing slices to
 % look across is provided in the opts structure as opts.skip. The connected
@@ -20,17 +20,17 @@ function cc = merge_cc_across_gaps(cc, opts)
 %
 
 % Build the slice structure
-[objects, cc] = buildSliceStruct(cc, opts);
+[objects, cc] = buildSliceStruct(cc, opts, direction);
 
 % Loop over the objects to be checked
 while objects.check
     obj = objects.check(1);
-    fprintf('Object %s\n', sprintf('%06d', obj));
+    fprintf('\nObject %s\n', sprintf('%06d', obj));
     fprintf('=============\n');
     fprintf('Min: %d, Max: %d\n', cc.zmin(obj), cc.zmax(obj));
     clear merge
     merge = obj;
-    merge(2) = findMerges(obj, cc, objects, opts);
+    merge(2) = findMerges(obj, cc, objects, opts, direction);
     
     % Continue to the next loop iteration if no merge is found
     if ~merge(2); 
@@ -42,7 +42,7 @@ while objects.check
     while merge(end)
         if cc.zmax(merge(end)) ~= opts.stackdims(3)
             merge(numel(merge)+1) = findMerges(merge(end), cc, objects, ...
-                opts);
+                opts, direction);
         else
             break
         end
